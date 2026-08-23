@@ -6,7 +6,7 @@ function Register() {
     <div className="min-h-screen bg-yellow-300 text-slate-950">
       <Navbar />
 
-      <section className="min-h-[calc(100vh-88px)] flex items-center justify-center px-6 py-12">
+      <section className="flex min-h-screen items-center justify-center px-6 pb-12 pt-[112px]">
         <div className="w-full max-w-5xl grid lg:grid-cols-2 border-2 border-slate-950 rounded-3xl overflow-hidden shadow-[10px_10px_0_#111827]">
 
           {/* LEFT SIDE */}

@@ -46,7 +46,7 @@ function Profile() {
     <div className="min-h-screen bg-yellow-300 text-slate-950">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-6 md:px-12 py-12">
+      <main className="mx-auto max-w-6xl px-6 pb-12 pt-[112px] md:px-12">
 
         {/* HEADER */}
         <section>

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 function GamePlaceholder({ title, icon }) {
   return (
-    <div className="min-h-screen bg-yellow-300 flex items-center justify-center px-6">
+    <div className="flex min-h-screen items-center justify-center bg-yellow-300 px-6 pb-12 pt-28">
       <div className="bg-white border-2 border-slate-950 rounded-3xl p-10 md:p-16 text-center shadow-[8px_8px_0_#111827] max-w-xl w-full">
 
         <div className="text-7xl mb-6">
