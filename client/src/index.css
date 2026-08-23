@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* background */
+body {
+  margin: 0;
+}
+
+.bg-yellow-300 {
+  background-color: #f8cf52;
+  background-image: radial-gradient(
+    rgba(17, 24, 39, 0.12) 1.2px,
+    transparent 1.2px
+  );
+  background-size: 18px 18px;
+}
