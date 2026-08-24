@@ -8,6 +8,9 @@ import Leaderboard from "./pages/Leaderboard";
 import GamePlaceholder from "./games/GamePlaceholder";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MathBlast from "./games/MathBlast";
+import TicTacToe from "./games/TicTacToe";
+
 function App() {
   return (
     <BrowserRouter>
@@ -32,6 +35,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/games/math-blast"
+  element={
+    <ProtectedRoute>
+      <MathBlast />
+    </ProtectedRoute>
+  }
+/>
         <Route
           path="/games/flip-match"
           element={<GamePlaceholder title="Flip & Match" icon="🃏" />}
@@ -43,9 +55,13 @@ function App() {
         />
 
         <Route
-          path="/games/tic-tac-toe"
-          element={<GamePlaceholder title="Toon Tac Toe" icon="⭕" />}
-        />
+  path="/games/tic-tac-toe"
+  element={
+    <ProtectedRoute>
+      <TicTacToe />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/games/grid-quest"
