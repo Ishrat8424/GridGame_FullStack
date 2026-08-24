@@ -1,19 +1,50 @@
 import Navbar from "../components/Navbar";
+import { useAuth } from "../context/useAuth";
 
 function Dashboard() {
-  // Temporary data.
-  // Later this will come from our backend.
+  const { user, loading } = useAuth();
+
+  // Show loading while user data is being fetched from backend
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-yellow-300 flex items-center justify-center">
+        <p className="text-2xl font-black">
+          Loading player...
+        </p>
+      </div>
+    );
+  }
+
+  // If user is unavailable, render nothing
+  if (!user) {
+    return null;
+  }
+
+  // Real user data from MongoDB
   const player = {
-    username: "PlayerOne",
-    level: 4,
-    xp: 340,
-    nextLevelXP: 500,
-    gamesPlayed: 28,
-    wins: 19,
-    winRate: 68,
-    bestStreak: 7,
+    username: user.username,
+    level: user.level,
+    xp: user.xp,
+    nextLevelXP: user.level * 500,
+
+    gamesPlayed: user.stats?.gamesPlayed || 0,
+    wins: user.stats?.wins || 0,
+    losses: user.stats?.losses || 0,
+    bestStreak: user.stats?.bestStreak || 0,
   };
 
+  const winRate =
+    player.gamesPlayed > 0
+      ? Math.round((player.wins / player.gamesPlayed) * 100)
+      : 0;
+
+  const xpPercentage = Math.min(
+    (player.xp / player.nextLevelXP) * 100,
+    100
+  );
+
+  // Temporary mock data.
+  // Later this will come from Game History API.
   const recentGames = [
     {
       game: "Math Blast",
@@ -38,6 +69,8 @@ function Dashboard() {
     },
   ];
 
+  // Temporary mock data.
+  // Later this will come from Achievement API.
   const achievements = [
     {
       icon: "🏆",
@@ -56,16 +89,11 @@ function Dashboard() {
     },
   ];
 
-  const xpPercentage = Math.min(
-    (player.xp / player.nextLevelXP) * 100,
-    100
-  );
-
   return (
     <div className="min-h-screen bg-yellow-300 text-slate-950">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-6 pb-12 pt-[112px] md:px-12">
+      <main className="mx-auto max-w-7xl px-6 pb-12 pt-28 md:px-12">
 
         {/* HEADER */}
         <section className="mb-10">
@@ -87,8 +115,9 @@ function Dashboard() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 
             <div className="flex items-center gap-5">
+
               <div className="w-20 h-20 bg-yellow-300 border-2 border-slate-950 rounded-full flex items-center justify-center text-4xl">
-                🎮
+                {user.avatar || "🎮"}
               </div>
 
               <div>
@@ -108,16 +137,19 @@ function Dashboard() {
               </p>
 
               <p className="font-semibold">
-                {player.nextLevelXP - player.xp} XP until next level
+                {Math.max(player.nextLevelXP - player.xp, 0)} XP until next level
               </p>
             </div>
 
           </div>
 
+          {/* XP BAR */}
           <div className="mt-7 h-6 bg-white border-2 border-slate-950 rounded-full overflow-hidden">
             <div
-              className="h-full bg-cyan-300"
-              style={{ width: `${xpPercentage}%` }}
+              className="h-full bg-cyan-300 transition-all duration-500"
+              style={{
+                width: `${xpPercentage}%`,
+              }}
             />
           </div>
         </section>
@@ -141,7 +173,7 @@ function Dashboard() {
 
           <StatCard
             icon="📈"
-            value={`${player.winRate}%`}
+            value={`${winRate}%`}
             label="Win Rate"
             color="bg-emerald-200"
           />
@@ -161,6 +193,7 @@ function Dashboard() {
           {/* RECENT GAMES */}
           <div>
             <div className="flex items-end justify-between mb-5">
+
               <div>
                 <p className="font-mono font-bold tracking-widest text-sm">
                   YOUR ACTIVITY
@@ -171,18 +204,25 @@ function Dashboard() {
                 </h2>
               </div>
 
-              <button className="font-black hover:text-pink-600">
+              <button
+                type="button"
+                className="font-black hover:text-pink-600"
+              >
                 VIEW ALL →
               </button>
+
             </div>
 
             <div className="space-y-4">
+
               {recentGames.map((game, index) => (
                 <div
                   key={index}
                   className="bg-white border-2 border-slate-950 rounded-2xl p-5 flex items-center justify-between shadow-[4px_4px_0_#111827]"
                 >
+
                   <div className="flex items-center gap-4">
+
                     <div className="text-4xl">
                       {game.icon}
                     </div>
@@ -196,18 +236,22 @@ function Dashboard() {
                         {game.result} • Score {game.score}
                       </p>
                     </div>
+
                   </div>
 
                   <div className="font-black text-lg">
                     +{game.xp} XP
                   </div>
+
                 </div>
               ))}
+
             </div>
           </div>
 
           {/* ACHIEVEMENTS */}
           <div>
+
             <div className="mb-5">
               <p className="font-mono font-bold tracking-widest text-sm">
                 TROPHY CABINET
@@ -219,11 +263,13 @@ function Dashboard() {
             </div>
 
             <div className="space-y-4">
+
               {achievements.map((achievement, index) => (
                 <div
                   key={index}
                   className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-5 flex items-center gap-5 shadow-[4px_4px_0_#111827]"
                 >
+
                   <div className="w-16 h-16 shrink-0 bg-yellow-300 border-2 border-slate-950 rounded-full flex items-center justify-center text-3xl">
                     {achievement.icon}
                   </div>
@@ -237,8 +283,10 @@ function Dashboard() {
                       {achievement.description}
                     </p>
                   </div>
+
                 </div>
               ))}
+
             </div>
           </div>
 
@@ -271,6 +319,7 @@ function Dashboard() {
             </a>
 
           </div>
+
         </section>
 
       </main>

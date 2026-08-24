@@ -1,12 +1,68 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import api from "../services/api";
+import { useAuth } from "../context/useAuth";
+
 
 function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setError("");
+
+    if (!formData.email || !formData.password) {
+      setError("Please enter email and password.");
+      return;
+    }
+
+  try {
+  setLoading(true);
+
+  const response = await api.post("/auth/login", {
+    email: formData.email,
+    password: formData.password,
+  });
+
+  const { token, user } = response.data;
+
+  login(user, token);
+
+  navigate("/dashboard");
+} catch (err) {
+  setError(
+    err.response?.data?.message ||
+      "Login failed. Please try again."
+  );
+} finally {
+  setLoading(false);
+}
+
+  };
+
   return (
     <div className="min-h-screen bg-yellow-300 text-slate-950">
       <Navbar />
 
-      <section className="flex min-h-screen items-center justify-center px-6 pb-12 pt-[112px]">
+      <section className="min-h-[calc(100vh-88px)] flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-5xl grid lg:grid-cols-2 border-2 border-slate-950 rounded-3xl overflow-hidden shadow-[10px_10px_0_#111827]">
 
           {/* LEFT SIDE */}
@@ -41,7 +97,10 @@ function Login() {
               Ready Player?
             </h2>
 
-            <form className="mt-8 space-y-6">
+            <form
+              onSubmit={handleSubmit}
+              className="mt-8 space-y-6"
+            >
 
               <div>
                 <label className="block font-bold mb-2">
@@ -50,6 +109,9 @@ function Login() {
 
                 <input
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="player@example.com"
                   className="w-full px-4 py-3 border-2 border-slate-950 rounded-xl outline-none focus:ring-4 focus:ring-cyan-200"
                 />
@@ -62,16 +124,26 @@ function Login() {
 
                 <input
                   type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="Enter your password"
                   className="w-full px-4 py-3 border-2 border-slate-950 rounded-xl outline-none focus:ring-4 focus:ring-pink-200"
                 />
               </div>
 
+              {error && (
+                <div className="bg-red-100 border-2 border-red-500 rounded-xl p-3 font-bold text-red-700">
+                  ❌ {error}
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="w-full bg-slate-950 text-white py-3 rounded-xl font-black border-2 border-slate-950 hover:-translate-y-1 transition"
+                disabled={loading}
+                className="w-full bg-slate-950 text-white py-3 rounded-xl font-black border-2 border-slate-950 hover:-translate-y-1 transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                LOGIN TO GAMEGRID
+                {loading ? "LOGGING IN..." : "LOGIN TO GAMEGRID"}
               </button>
             </form>
 

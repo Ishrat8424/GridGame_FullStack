@@ -1,21 +1,46 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
+import { useAuth } from "../context/useAuth";
+import api from "../services/api";
 
 function Profile() {
+  const { user, loading, updateUser } = useAuth();
+
   const avatars = ["🦊", "🐼", "🐸", "🐯", "🦁", "🐵", "🐨", "🐰"];
 
-  const [selectedAvatar, setSelectedAvatar] = useState("🦊");
+  const [selectedAvatar, setSelectedAvatar] = useState(
+    user?.avatar || "🦊"
+  );
+
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-yellow-300 flex items-center justify-center">
+        <p className="text-2xl font-black">
+          Loading profile...
+        </p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const player = {
-    username: "PlayerOne",
-    email: "player@example.com",
-    level: 4,
-    xp: 340,
-    nextLevelXP: 500,
-    gamesPlayed: 28,
-    wins: 19,
-    losses: 9,
-    bestStreak: 7,
+    username: user.username,
+    email: user.email,
+    level: user.level,
+    xp: user.xp,
+    nextLevelXP: user.level * 500,
+
+    gamesPlayed: user.stats?.gamesPlayed || 0,
+    wins: user.stats?.wins || 0,
+    losses: user.stats?.losses || 0,
+    bestStreak: user.stats?.bestStreak || 0,
   };
 
   const achievements = [
@@ -42,11 +67,38 @@ function Profile() {
     100
   );
 
+  const handleAvatarChange = async (avatar) => {
+    try {
+      setSavingAvatar(true);
+      setMessage("");
+      setError("");
+
+      const response = await api.patch("/auth/profile", {
+        avatar,
+      });
+
+      setSelectedAvatar(response.data.user.avatar);
+
+      updateUser(response.data.user);
+
+      setMessage("Avatar saved successfully!");
+    } catch (err) {
+      console.error("Avatar update failed:", err);
+
+      setError(
+        err.response?.data?.message ||
+          "Failed to save avatar."
+      );
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-yellow-300 text-slate-950">
       <Navbar />
 
-      <main className="mx-auto max-w-6xl px-6 pb-12 pt-[112px] md:px-12">
+      <main className="mx-auto max-w-6xl px-6 pb-12 pt-28 md:px-12">
 
         {/* HEADER */}
         <section>
@@ -80,6 +132,7 @@ function Profile() {
             <div className="w-full mt-7">
               <div className="flex justify-between font-black mb-2">
                 <span>XP</span>
+
                 <span>
                   {player.xp} / {player.nextLevelXP}
                 </span>
@@ -87,7 +140,7 @@ function Profile() {
 
               <div className="h-5 bg-white border-2 border-slate-950 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-cyan-300"
+                  className="h-full bg-cyan-300 transition-all duration-500"
                   style={{
                     width: `${xpPercentage}%`,
                   }}
@@ -120,7 +173,7 @@ function Profile() {
                   Email
                 </p>
 
-                <p className="font-black text-lg mt-1">
+                <p className="font-black text-lg mt-1 break-all">
                   {player.email}
                 </p>
               </div>
@@ -129,6 +182,7 @@ function Profile() {
 
             {/* STATS */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+
               <MiniStat
                 value={player.gamesPlayed}
                 label="Games"
@@ -148,6 +202,7 @@ function Profile() {
                 value={player.bestStreak}
                 label="Best Streak"
               />
+
             </div>
           </div>
         </section>
@@ -164,25 +219,45 @@ function Profile() {
           </h2>
 
           <div className="grid grid-cols-4 sm:grid-cols-8 gap-4 mt-6">
+
             {avatars.map((avatar) => (
               <button
                 key={avatar}
-                onClick={() => setSelectedAvatar(avatar)}
+                type="button"
+                onClick={() => handleAvatarChange(avatar)}
+                disabled={savingAvatar}
                 className={`aspect-square rounded-2xl border-2 border-slate-950 text-4xl flex items-center justify-center transition
                 ${
                   selectedAvatar === avatar
                     ? "bg-pink-500 -translate-y-1 shadow-[4px_4px_0_#111827]"
                     : "bg-white hover:bg-cyan-200"
-                }`}
+                }
+                disabled:opacity-60 disabled:cursor-not-allowed`}
               >
                 {avatar}
               </button>
             ))}
+
           </div>
 
-          <p className="mt-4 font-semibold text-slate-700">
-            Avatar saving will be connected to your account later.
-          </p>
+          {savingAvatar && (
+            <p className="mt-4 font-bold text-slate-700">
+              Saving avatar...
+            </p>
+          )}
+
+          {message && (
+            <div className="mt-4 bg-green-100 border-2 border-green-600 rounded-xl p-3 font-bold text-green-700">
+              ✅ {message}
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-4 bg-red-100 border-2 border-red-500 rounded-xl p-3 font-bold text-red-700">
+              ❌ {error}
+            </div>
+          )}
+
         </section>
 
         {/* ACHIEVEMENTS */}
@@ -197,6 +272,7 @@ function Profile() {
           </h2>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+
             {achievements.map((achievement) => (
               <div
                 key={achievement.title}
@@ -211,8 +287,8 @@ function Profile() {
                 </h3>
               </div>
             ))}
-          </div>
 
+          </div>
         </section>
 
       </main>
@@ -223,6 +299,7 @@ function Profile() {
 function MiniStat({ value, label }) {
   return (
     <div className="bg-cyan-200 border-2 border-slate-950 rounded-xl p-4 text-center">
+
       <p className="text-3xl font-black">
         {value}
       </p>
@@ -230,6 +307,7 @@ function MiniStat({ value, label }) {
       <p className="font-bold text-sm mt-1">
         {label}
       </p>
+
     </div>
   );
 }

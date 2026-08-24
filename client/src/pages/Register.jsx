@@ -1,12 +1,91 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import api from "../services/api";
 
 function Register() {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setError("");
+    setSuccess("");
+
+    if (
+      !formData.username ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await api.post("/auth/register", {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      setSuccess(response.data.message);
+
+      setFormData({
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1200);
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Something went wrong. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-yellow-300 text-slate-950">
       <Navbar />
 
-      <section className="flex min-h-screen items-center justify-center px-6 pb-12 pt-[112px]">
+      <section className="flex min-h-screen items-center justify-center px-6 pb-12 pt-28">
         <div className="w-full max-w-5xl grid lg:grid-cols-2 border-2 border-slate-950 rounded-3xl overflow-hidden shadow-[10px_10px_0_#111827]">
 
           {/* LEFT SIDE */}
@@ -60,7 +139,10 @@ function Register() {
               Create your GameGrid player profile.
             </p>
 
-            <form className="mt-8 space-y-5">
+            <form
+              onSubmit={handleSubmit}
+              className="mt-8 space-y-5"
+            >
 
               {/* USERNAME */}
               <div>
@@ -70,6 +152,9 @@ function Register() {
 
                 <input
                   type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
                   placeholder="Choose a player name"
                   className="w-full px-4 py-3 border-2 border-slate-950 rounded-xl outline-none focus:ring-4 focus:ring-yellow-200"
                 />
@@ -83,6 +168,9 @@ function Register() {
 
                 <input
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="player@example.com"
                   className="w-full px-4 py-3 border-2 border-slate-950 rounded-xl outline-none focus:ring-4 focus:ring-cyan-200"
                 />
@@ -96,6 +184,9 @@ function Register() {
 
                 <input
                   type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="Create a password"
                   className="w-full px-4 py-3 border-2 border-slate-950 rounded-xl outline-none focus:ring-4 focus:ring-pink-200"
                 />
@@ -109,16 +200,36 @@ function Register() {
 
                 <input
                   type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
                   placeholder="Enter password again"
                   className="w-full px-4 py-3 border-2 border-slate-950 rounded-xl outline-none focus:ring-4 focus:ring-pink-200"
                 />
               </div>
 
+              {/* ERROR */}
+              {error && (
+                <div className="bg-red-100 border-2 border-red-500 rounded-xl p-3 font-bold text-red-700">
+                  ❌ {error}
+                </div>
+              )}
+
+              {/* SUCCESS */}
+              {success && (
+                <div className="bg-green-100 border-2 border-green-600 rounded-xl p-3 font-bold text-green-700">
+                  ✅ {success}
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="w-full bg-pink-500 text-white py-3 rounded-xl font-black border-2 border-slate-950 shadow-[4px_4px_0_#111827] hover:-translate-y-1 hover:shadow-[6px_6px_0_#111827] transition"
+                disabled={loading}
+                className="w-full bg-pink-500 text-white py-3 rounded-xl font-black border-2 border-slate-950 shadow-[4px_4px_0_#111827] hover:-translate-y-1 hover:shadow-[6px_6px_0_#111827] transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                CREATE ACCOUNT 🚀
+                {loading
+                  ? "CREATING PLAYER..."
+                  : "CREATE ACCOUNT 🚀"}
               </button>
             </form>
 
