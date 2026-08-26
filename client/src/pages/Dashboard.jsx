@@ -1,71 +1,121 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  Link,
+} from "react-router-dom";
+
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/useAuth";
 import api from "../services/api";
 
 function Dashboard() {
-  const { user, loading } = useAuth();
+  const {
+    user,
+    loading,
+  } = useAuth();
 
-  const [recentGames, setRecentGames] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(true);
+  const [
+    recentGames,
+    setRecentGames,
+  ] = useState([]);
 
-  const [achievements, setAchievements] = useState([]);
-  const [achievementsLoading, setAchievementsLoading] =
-    useState(true);
+  const [
+    historyLoading,
+    setHistoryLoading,
+  ] = useState(true);
 
-  // Fetch game history
+  const [
+    achievements,
+    setAchievements,
+  ] = useState([]);
+
+  const [
+    achievementsLoading,
+    setAchievementsLoading,
+  ] = useState(true);
+
+  // =====================================================
+  // FETCH RECENT 8 GAMES
+  // =====================================================
+
   useEffect(() => {
-    const fetchGameHistory = async () => {
-      try {
-        const response = await api.get("/games/history");
+    const fetchGameHistory =
+      async () => {
+        try {
+          setHistoryLoading(true);
 
-        setRecentGames(response.data.games);
-      } catch (error) {
-        console.error(
-          "Failed to fetch game history:",
-          error
-        );
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
+          const response =
+            await api.get(
+              "/games/history?page=1&limit=8"
+            );
+
+          setRecentGames(
+            response.data.games || []
+          );
+        } catch (error) {
+          console.error(
+            "Failed to fetch game history:",
+            error
+          );
+        } finally {
+          setHistoryLoading(false);
+        }
+      };
 
     if (user) {
       fetchGameHistory();
     }
   }, [user]);
 
-  // Fetch achievements
-  useEffect(() => {
-    const fetchAchievements = async () => {
-      try {
-        const response = await api.get("/achievements");
+  // =====================================================
+  // FETCH ACHIEVEMENTS
+  // =====================================================
 
-        setAchievements(
-          response.data.achievements
-        );
-      } catch (error) {
-        console.error(
-          "Failed to fetch achievements:",
-          error
-        );
-      } finally {
-        setAchievementsLoading(false);
-      }
-    };
+  useEffect(() => {
+    const fetchAchievements =
+      async () => {
+        try {
+          const response =
+            await api.get(
+              "/achievements"
+            );
+
+          setAchievements(
+            response.data
+              .achievements || []
+          );
+        } catch (error) {
+          console.error(
+            "Failed to fetch achievements:",
+            error
+          );
+        } finally {
+          setAchievementsLoading(
+            false
+          );
+        }
+      };
 
     if (user) {
       fetchAchievements();
     }
   }, [user]);
 
-  // Loading user
+  // =====================================================
+  // LOADING
+  // =====================================================
+
   if (loading) {
     return (
       <div className="min-h-screen bg-yellow-300 flex items-center justify-center">
+
         <p className="text-2xl font-black">
           Loading player...
         </p>
+
       </div>
     );
   }
@@ -74,13 +124,22 @@ function Dashboard() {
     return null;
   }
 
-  // Real MongoDB user data
-  const player = {
-    username: user.username,
-    level: user.level,
-    xp: user.xp,
+  // =====================================================
+  // PLAYER
+  // =====================================================
 
-    nextLevelXP: user.level * 500,
+  const player = {
+    username:
+      user.username,
+
+    level:
+      user.level || 1,
+
+    xp:
+      user.xp || 0,
+
+    nextLevelXP:
+      (user.level || 1) * 500,
 
     gamesPlayed:
       user.stats?.gamesPlayed || 0,
@@ -95,6 +154,10 @@ function Dashboard() {
       user.stats?.bestStreak || 0,
   };
 
+  // =====================================================
+  // WIN RATE
+  // =====================================================
+
   const winRate =
     player.gamesPlayed > 0
       ? Math.round(
@@ -104,28 +167,36 @@ function Dashboard() {
         )
       : 0;
 
-  const xpPercentage = Math.min(
-    (player.xp /
-      player.nextLevelXP) *
-      100,
-    100
-  );
+  // =====================================================
+  // XP
+  // =====================================================
+
+  const xpPercentage =
+    Math.min(
+      (player.xp /
+        player.nextLevelXP) *
+        100,
+      100
+    );
 
   return (
     <div className="min-h-screen bg-yellow-300 text-slate-950">
 
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-6 pb-12 pt-28 md:px-12">
+      <main className="mx-auto max-w-7xl px-5 sm:px-6 pb-12 pt-28 md:px-12">
 
-        {/* HEADER */}
+        {/* =================================================
+            HEADER
+        ================================================= */}
+
         <section className="mb-10">
 
           <p className="font-mono font-black tracking-[0.2em]">
             PLAYER DASHBOARD
           </p>
 
-          <h1 className="text-5xl md:text-6xl font-black mt-2">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mt-2">
             Hey, {player.username}! 👋
           </h1>
 
@@ -134,10 +205,33 @@ function Dashboard() {
             brain-training session?
           </p>
 
+          <div className="flex flex-wrap gap-3 mt-6">
+
+            <a
+              href="/#games"
+              className="inline-flex items-center gap-2 bg-slate-950 text-white border-2 border-slate-950 rounded-xl px-5 py-3 font-black shadow-[4px_4px_0_#ec4899] hover:-translate-y-1 transition"
+            >
+              <span aria-hidden="true">🎮</span>
+              Start playing
+            </a>
+
+            <Link
+              to="/activity"
+              className="inline-flex items-center gap-2 bg-white border-2 border-slate-950 rounded-xl px-5 py-3 font-black hover:-translate-y-1 transition"
+            >
+              <span aria-hidden="true">📊</span>
+              View activity
+            </Link>
+
+          </div>
+
         </section>
 
-        {/* PLAYER LEVEL */}
-        <section className="bg-pink-500 border-2 border-slate-950 rounded-3xl p-7 md:p-9 shadow-[7px_7px_0_#111827]">
+        {/* =================================================
+            LEVEL
+        ================================================= */}
+
+        <section className="bg-pink-500 border-2 border-slate-950 rounded-3xl p-6 md:p-9 shadow-[7px_7px_0_#111827]">
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 
@@ -181,13 +275,20 @@ function Dashboard() {
 
           </div>
 
-          {/* XP BAR */}
-          <div className="mt-7 h-6 bg-white border-2 border-slate-950 rounded-full overflow-hidden">
+          <div
+            className="mt-7 h-6 bg-white border-2 border-slate-950 rounded-full overflow-hidden"
+            role="progressbar"
+            aria-label={`Experience progress to level ${player.level + 1}`}
+            aria-valuemin="0"
+            aria-valuemax={player.nextLevelXP}
+            aria-valuenow={Math.min(player.xp, player.nextLevelXP)}
+          >
 
             <div
               className="h-full bg-cyan-300 transition-all duration-500"
               style={{
-                width: `${xpPercentage}%`,
+                width:
+                  `${xpPercentage}%`,
               }}
             />
 
@@ -195,12 +296,17 @@ function Dashboard() {
 
         </section>
 
-        {/* STAT CARDS */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-5 mt-10">
+        {/* =================================================
+            STATS
+        ================================================= */}
+
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mt-10">
 
           <StatCard
             icon="🎮"
-            value={player.gamesPlayed}
+            value={
+              player.gamesPlayed
+            }
             label="Games Played"
             color="bg-cyan-300"
           />
@@ -221,20 +327,28 @@ function Dashboard() {
 
           <StatCard
             icon="🔥"
-            value={player.bestStreak}
+            value={
+              player.bestStreak
+            }
             label="Best Streak"
             color="bg-violet-200"
           />
 
         </section>
 
-        {/* RECENT GAMES + ACHIEVEMENTS */}
+        {/* =================================================
+            ACTIVITY + ACHIEVEMENTS
+        ================================================= */}
+
         <section className="grid lg:grid-cols-2 gap-8 mt-12">
 
-          {/* RECENT GAMES */}
+          {/* ===============================================
+              RECENT ACTIVITY
+          =============================================== */}
+
           <div>
 
-            <div className="flex items-end justify-between mb-5">
+            <div className="flex items-end justify-between gap-4 mb-5">
 
               <div>
 
@@ -248,12 +362,12 @@ function Dashboard() {
 
               </div>
 
-              <button
-                type="button"
-                className="font-black hover:text-pink-600"
+              <Link
+                to="/activity"
+                className="font-black whitespace-nowrap hover:text-pink-600 transition"
               >
                 VIEW ALL →
-              </button>
+              </Link>
 
             </div>
 
@@ -261,15 +375,12 @@ function Dashboard() {
 
               {historyLoading ? (
 
-                <div className="bg-white border-2 border-slate-950 rounded-2xl p-6">
+                <ActivityMessage>
+                  Loading recent games...
+                </ActivityMessage>
 
-                  <p className="font-black">
-                    Loading recent games...
-                  </p>
-
-                </div>
-
-              ) : recentGames.length === 0 ? (
+              ) : recentGames.length ===
+                0 ? (
 
                 <div className="bg-white border-2 border-slate-950 rounded-2xl p-6 shadow-[4px_4px_0_#111827]">
 
@@ -278,61 +389,33 @@ function Dashboard() {
                   </p>
 
                   <p className="text-slate-600 mt-2">
-                    Play your first GameGrid
-                    challenge to see your
-                    activity here.
+                    Play your first
+                    GameGrid challenge
+                    to see your activity
+                    here.
                   </p>
+
+                  <a
+                    href="/#games"
+                    className="inline-flex mt-5 bg-pink-500 text-white border-2 border-slate-950 rounded-xl px-4 py-2 font-black hover:-translate-y-1 transition"
+                  >
+                    Choose a game →
+                  </a>
 
                 </div>
 
               ) : (
 
-                recentGames.map((game) => (
+                recentGames.map(
+                  (game) => (
 
-                  <div
-                    key={game._id}
-                    className="bg-white border-2 border-slate-950 rounded-2xl p-5 flex items-center justify-between shadow-[4px_4px_0_#111827]"
-                  >
+                    <GameActivityCard
+                      key={game._id}
+                      game={game}
+                    />
 
-                    <div className="flex items-center gap-4">
-
-                      <div className="text-4xl">
-                        {getGameIcon(
-                          game.game
-                        )}
-                      </div>
-
-                      <div>
-
-                        <h3 className="font-black text-xl">
-                          {game.game}
-                        </h3>
-
-                        <p className="font-semibold text-slate-600">
-                          {formatResult(
-                            game.result
-                          )}{" "}
-                          • Score{" "}
-                          {game.score}
-                        </p>
-
-                        <p className="text-xs text-slate-500 mt-1">
-                          {formatDate(
-                            game.createdAt
-                          )}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    <div className="font-black text-lg">
-                      +{game.xpEarned} XP
-                    </div>
-
-                  </div>
-
-                ))
+                  )
+                )
 
               )}
 
@@ -340,7 +423,10 @@ function Dashboard() {
 
           </div>
 
-          {/* ACHIEVEMENTS */}
+          {/* ===============================================
+              ACHIEVEMENTS
+          =============================================== */}
+
           <div>
 
             <div className="mb-5">
@@ -359,15 +445,12 @@ function Dashboard() {
 
               {achievementsLoading ? (
 
-                <div className="bg-white border-2 border-slate-950 rounded-2xl p-6">
+                <ActivityMessage>
+                  Loading achievements...
+                </ActivityMessage>
 
-                  <p className="font-black">
-                    Loading achievements...
-                  </p>
-
-                </div>
-
-              ) : achievements.length === 0 ? (
+              ) : achievements.length ===
+                0 ? (
 
                 <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-6 shadow-[4px_4px_0_#111827]">
 
@@ -376,8 +459,8 @@ function Dashboard() {
                   </p>
 
                   <p className="text-slate-600 mt-2">
-                    Keep playing GameGrid to
-                    unlock your first
+                    Keep playing GameGrid
+                    to unlock your first
                     achievement.
                   </p>
 
@@ -396,15 +479,15 @@ function Dashboard() {
                     >
 
                       <div className="w-16 h-16 shrink-0 bg-yellow-300 border-2 border-slate-950 rounded-full flex items-center justify-center text-3xl">
+
                         {achievement.icon}
+
                       </div>
 
                       <div>
 
                         <h3 className="font-black text-xl">
-                          {
-                            achievement.title
-                          }
+                          {achievement.title}
                         </h3>
 
                         <p className="text-slate-600">
@@ -414,12 +497,14 @@ function Dashboard() {
                         </p>
 
                         {achievement.unlockedAt && (
+
                           <p className="text-xs text-slate-500 mt-1">
                             Unlocked{" "}
                             {formatDate(
                               achievement.unlockedAt
                             )}
                           </p>
+
                         )}
 
                       </div>
@@ -437,7 +522,10 @@ function Dashboard() {
 
         </section>
 
-        {/* QUICK PLAY */}
+        {/* =================================================
+            QUICK PLAY
+        ================================================= */}
+
         <section className="mt-14 bg-slate-950 text-white rounded-3xl border-2 border-slate-950 p-8 md:p-10 shadow-[7px_7px_0_#ec4899]">
 
           <p className="text-cyan-300 font-mono font-bold tracking-widest">
@@ -453,8 +541,8 @@ function Dashboard() {
               </h2>
 
               <p className="text-slate-300 mt-2">
-                Play another challenge and
-                earn more XP.
+                Play another challenge
+                and earn more XP.
               </p>
 
             </div>
@@ -471,11 +559,111 @@ function Dashboard() {
         </section>
 
       </main>
+
     </div>
   );
 }
 
-// STAT CARD
+// =====================================================
+// ACTIVITY CARD
+// =====================================================
+
+function GameActivityCard({
+  game,
+}) {
+  return (
+    <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0_#111827]">
+
+      <div className="flex items-start justify-between gap-4">
+
+        <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+
+          <div className="text-3xl sm:text-4xl shrink-0">
+            {getGameIcon(
+              game.game
+            )}
+          </div>
+
+          <div className="min-w-0">
+
+            <h3 className="font-black text-lg sm:text-xl">
+              {game.game}
+            </h3>
+
+            <p className="font-semibold text-sm sm:text-base text-slate-600 mt-1">
+
+              {formatResult(
+                game.result
+              )}
+
+              {game.mode &&
+                game.mode !==
+                  "normal" && (
+                  <>
+                    {" • "}
+                    {formatMode(
+                      game.mode
+                    )}
+                  </>
+                )}
+
+              {game.difficulty &&
+                game.difficulty !==
+                  "normal" && (
+                  <>
+                    {" • "}
+                    {formatDifficulty(
+                      game.difficulty
+                    )}
+                  </>
+                )}
+
+            </p>
+
+            <p className="font-bold text-sm mt-1">
+              Score {game.score}
+            </p>
+
+            <p className="text-xs text-slate-500 mt-1">
+              {formatDate(
+                game.createdAt
+              )}
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="font-black text-base sm:text-lg whitespace-nowrap">
+          +{game.xpEarned || 0} XP
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+// =====================================================
+// MESSAGE
+// =====================================================
+
+function ActivityMessage({
+  children,
+}) {
+  return (
+    <div className="bg-white border-2 border-slate-950 rounded-2xl p-6">
+      <p className="font-black">
+        {children}
+      </p>
+    </div>
+  );
+}
+
+// =====================================================
+// STAT
+// =====================================================
+
 function StatCard({
   icon,
   value,
@@ -484,18 +672,18 @@ function StatCard({
 }) {
   return (
     <div
-      className={`${color} border-2 border-slate-950 rounded-2xl p-6 shadow-[5px_5px_0_#111827]`}
+      className={`${color} border-2 border-slate-950 rounded-2xl p-5 sm:p-6 shadow-[5px_5px_0_#111827]`}
     >
 
-      <div className="text-4xl">
+      <div className="text-3xl sm:text-4xl">
         {icon}
       </div>
 
-      <p className="text-4xl font-black mt-4">
+      <p className="text-3xl sm:text-4xl font-black mt-4">
         {value}
       </p>
 
-      <p className="font-bold mt-1">
+      <p className="font-bold mt-1 text-sm sm:text-base">
         {label}
       </p>
 
@@ -503,7 +691,10 @@ function StatCard({
   );
 }
 
-// GAME ICON
+// =====================================================
+// HELPERS
+// =====================================================
+
 function getGameIcon(gameName) {
   const icons = {
     "Math Blast": "🧮",
@@ -514,10 +705,12 @@ function getGameIcon(gameName) {
     "Sudoku Mini": "🔢",
   };
 
-  return icons[gameName] || "🎮";
+  return (
+    icons[gameName] ||
+    "🎮"
+  );
 }
 
-// FORMAT RESULT
 function formatResult(result) {
   if (result === "won") {
     return "Won";
@@ -530,7 +723,33 @@ function formatResult(result) {
   return "Completed";
 }
 
-// FORMAT DATE
+function formatDifficulty(
+  difficulty
+) {
+  if (!difficulty) {
+    return "";
+  }
+
+  return (
+    difficulty
+      .charAt(0)
+      .toUpperCase() +
+    difficulty.slice(1)
+  );
+}
+
+function formatMode(mode) {
+  if (mode === "computer") {
+    return "Vs Computer";
+  }
+
+  if (mode === "solo") {
+    return "Solo";
+  }
+
+  return "";
+}
+
 function formatDate(date) {
   if (!date) {
     return "";
@@ -538,7 +757,14 @@ function formatDate(date) {
 
   return new Date(
     date
-  ).toLocaleDateString();
+  ).toLocaleDateString(
+    "en-IN",
+    {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }
+  );
 }
 
 export default Dashboard;
