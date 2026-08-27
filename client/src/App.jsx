@@ -5,11 +5,15 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Leaderboard from "./pages/Leaderboard";
-import GamePlaceholder from "./games/GamePlaceholder";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MathBlast from "./games/MathBlast";
 import TicTacToe from "./games/TicTacToe";
+import FlipMatch from "./games/FlipMatch";
+import Activity from "./pages/Activity";
+import SudokuMini from "./games/SudokuMini";
+import PatternPuzzle from "./games/PatternPuzzle";
+import GridQuest from "./games/GridQuest";
 
 function App() {
   return (
@@ -25,7 +29,16 @@ function App() {
               <Dashboard />
             </ProtectedRoute>
           }
+
         />
+        <Route
+  path="/activity"
+  element={
+    <ProtectedRoute>
+      <Activity />
+    </ProtectedRoute>
+  }
+/>
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route
           path="/profile"
@@ -45,14 +58,22 @@ function App() {
   }
 />
         <Route
-          path="/games/flip-match"
-          element={<GamePlaceholder title="Flip & Match" icon="🃏" />}
-        />
+  path="/games/flip-match"
+  element={
+    <ProtectedRoute>
+      <FlipMatch />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
-          path="/games/pattern-puzzle"
-          element={<GamePlaceholder title="Pattern Puzzle" icon="🧠" />}
-        />
+  path="/games/pattern-puzzle"
+  element={
+    <ProtectedRoute>
+      <PatternPuzzle />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
   path="/games/tic-tac-toe"
@@ -64,19 +85,31 @@ function App() {
 />
 
         <Route
-          path="/games/grid-quest"
-          element={<GamePlaceholder title="Grid Quest" icon="🧭" />}
-        />
+  path="/games/sudoku-mini"
+  element={
+    <ProtectedRoute>
+      <SudokuMini />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/games/sudoku"
-          element={<GamePlaceholder title="Sudoku Mini" icon="🔢" />}
+          element={
+            <ProtectedRoute>
+              <SudokuMini />
+            </ProtectedRoute>
+          }
         />
 
         <Route
-          path="/games/math-blast"
-          element={<GamePlaceholder title="Math Blast" icon="🧮" />}
-        />
+  path="/games/grid-quest"
+  element={
+    <ProtectedRoute>
+      <GridQuest />
+    </ProtectedRoute>
+  }
+/>
       </Routes>
     </BrowserRouter>
   );

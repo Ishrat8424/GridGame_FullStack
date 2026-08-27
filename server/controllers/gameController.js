@@ -12,7 +12,6 @@ const {
 // =====================================================
 // SAVE GAME RESULT
 // POST /api/games/result
-// Protected route
 // =====================================================
 
 const saveGameResult = async (req, res) => {
@@ -21,9 +20,14 @@ const saveGameResult = async (req, res) => {
       game,
       score,
       result,
+      difficulty,
+      mode,
     } = req.body;
 
-    // 1. Validate required fields
+    // =================================================
+    // VALIDATE REQUIRED FIELDS
+    // =================================================
+
     if (!game || !result) {
       return res.status(400).json({
         success: false,
@@ -31,7 +35,10 @@ const saveGameResult = async (req, res) => {
       });
     }
 
-    // 2. Validate result type
+    // =================================================
+    // VALIDATE RESULT
+    // =================================================
+
     const allowedResults = [
       "won",
       "lost",
@@ -45,7 +52,55 @@ const saveGameResult = async (req, res) => {
       });
     }
 
-    // 3. Normalize score
+    // =================================================
+    // VALIDATE DIFFICULTY
+    // =================================================
+
+    const allowedDifficulties = [
+      "easy",
+      "medium",
+      "hard",
+      "normal",
+    ];
+
+    const finalDifficulty =
+      difficulty || "normal";
+
+    if (
+      !allowedDifficulties.includes(
+        finalDifficulty
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid difficulty.",
+      });
+    }
+
+    // =================================================
+    // VALIDATE MODE
+    // =================================================
+
+    const allowedModes = [
+      "solo",
+      "computer",
+      "normal",
+    ];
+
+    const finalMode =
+      mode || "normal";
+
+    if (!allowedModes.includes(finalMode)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid game mode.",
+      });
+    }
+
+    // =================================================
+    // SCORE
+    // =================================================
+
     const finalScore = Number(score) || 0;
 
     if (finalScore < 0) {
@@ -55,23 +110,22 @@ const saveGameResult = async (req, res) => {
       });
     }
 
-    // 4. Calculate XP on backend
-   const xpEarned = calculateXP({
-  game,
-  score: finalScore,
-  result,
-});
+    // =================================================
+    // XP
+    // =================================================
 
-    // 5. Save game history
-    const gameResult = await GameResult.create({
-      user: req.user._id,
+    const xpEarned = calculateXP({
       game,
       score: finalScore,
       result,
-      xpEarned,
+      difficulty: finalDifficulty,
+      mode: finalMode,
     });
 
-    // 6. Get current user
+    // =================================================
+    // USER
+    // =================================================
+
     const user = await User.findById(
       req.user._id
     );
@@ -83,15 +137,40 @@ const saveGameResult = async (req, res) => {
       });
     }
 
-    // 7. Increase games played
+    // =================================================
+    // CREATE GAME RESULT
+    // =================================================
+
+    const gameResult =
+      await GameResult.create({
+        user: req.user._id,
+
+        game,
+
+        mode: finalMode,
+
+        difficulty:
+          finalDifficulty,
+
+        score: finalScore,
+
+        result,
+
+        xpEarned,
+      });
+
+    // =================================================
+    // UPDATE USER STATS
+    // =================================================
+
     user.stats.gamesPlayed += 1;
 
-    // 8. Add XP
     user.xp += xpEarned;
 
-    // 9. WIN
+    // WIN
     if (result === "won") {
       user.stats.wins += 1;
+
       user.stats.currentStreak += 1;
 
       if (
@@ -103,29 +182,39 @@ const saveGameResult = async (req, res) => {
       }
     }
 
-    // 10. LOSS
+    // LOSS
     if (result === "lost") {
       user.stats.losses += 1;
+
       user.stats.currentStreak = 0;
     }
 
-    // completed currently does not change
-    // wins/losses/current streak
+    // =================================================
+    // LEVEL
+    // =================================================
 
-    // 11. Recalculate level
     user.level =
       Math.floor(user.xp / 500) + 1;
 
-    // 12. Save updated user
     await user.save();
 
-    // 13. Check achievements
-    const unlockedAchievements =
-      await checkAndUnlockAchievements(user);
+    // =================================================
+    // ACHIEVEMENTS
+    // =================================================
 
-    // 14. Return updated data
+    const unlockedAchievements =
+      await checkAndUnlockAchievements(
+        user,
+        gameResult
+      );
+
+    // =================================================
+    // RESPONSE
+    // =================================================
+
     return res.status(201).json({
       success: true,
+
       message:
         "Game result saved successfully!",
 
@@ -135,12 +224,24 @@ const saveGameResult = async (req, res) => {
 
       user: {
         id: user._id,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-        xp: user.xp,
-        level: user.level,
-        stats: user.stats,
+
+        username:
+          user.username,
+
+        email:
+          user.email,
+
+        avatar:
+          user.avatar,
+
+        xp:
+          user.xp,
+
+        level:
+          user.level,
+
+        stats:
+          user.stats,
       },
     });
   } catch (error) {
@@ -151,6 +252,7 @@ const saveGameResult = async (req, res) => {
 
     return res.status(500).json({
       success: false,
+
       message:
         "Server error while saving game result.",
     });
@@ -159,28 +261,96 @@ const saveGameResult = async (req, res) => {
 
 // =====================================================
 // GET GAME HISTORY
-// GET /api/games/history
-// Protected route
+// GET /api/games/history?page=1&limit=8
 // =====================================================
 
-const getGameHistory = async (
-  req,
-  res
-) => {
+const getGameHistory = async (req, res) => {
   try {
+    // =================================================
+    // PAGINATION
+    // =================================================
+
+    const page = Math.max(
+      parseInt(req.query.page, 10) || 1,
+      1
+    );
+
+    const requestedLimit =
+      parseInt(req.query.limit, 10) || 8;
+
+    // Prevent someone requesting thousands at once
+    const limit = Math.min(
+      Math.max(requestedLimit, 1),
+      50
+    );
+
+    const skip =
+      (page - 1) * limit;
+
+    // =================================================
+    // OPTIONAL GAME FILTER
+    // =================================================
+
+    const query = {
+      user: req.user._id,
+    };
+
+    if (
+      req.query.game &&
+      req.query.game !== "all"
+    ) {
+      query.game = req.query.game;
+    }
+
+    // =================================================
+    // GET TOTAL
+    // =================================================
+
+    const totalGames =
+      await GameResult.countDocuments(
+        query
+      );
+
+    // =================================================
+    // GET HISTORY
+    // =================================================
+
     const gameHistory =
-      await GameResult.find({
-        user: req.user._id,
-      })
+      await GameResult.find(query)
         .sort({
           createdAt: -1,
         })
-        .limit(10);
+        .skip(skip)
+        .limit(limit);
+
+    // =================================================
+    // PAGINATION INFO
+    // =================================================
+
+    const totalPages =
+      Math.ceil(
+        totalGames / limit
+      );
+
+    const hasMore =
+      page < totalPages;
 
     return res.status(200).json({
       success: true,
-      count: gameHistory.length,
-      games: gameHistory,
+
+      count:
+        gameHistory.length,
+
+      games:
+        gameHistory,
+
+      pagination: {
+        page,
+        limit,
+        totalGames,
+        totalPages,
+        hasMore,
+      },
     });
   } catch (error) {
     console.error(
@@ -190,6 +360,7 @@ const getGameHistory = async (
 
     return res.status(500).json({
       success: false,
+
       message:
         "Server error while fetching game history.",
     });
