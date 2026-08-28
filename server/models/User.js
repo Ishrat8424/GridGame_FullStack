@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    // =====================================================
+    // ACCOUNT
+    // =====================================================
+
     username: {
       type: String,
       required: true,
@@ -31,6 +35,10 @@ const userSchema = new mongoose.Schema(
       default: "🦊",
     },
 
+    // =====================================================
+    // XP + LEVEL
+    // =====================================================
+
     xp: {
       type: Number,
       default: 0,
@@ -42,6 +50,10 @@ const userSchema = new mongoose.Schema(
       default: 1,
       min: 1,
     },
+
+    // =====================================================
+    // GAME STATISTICS
+    // =====================================================
 
     stats: {
       gamesPlayed: {
@@ -59,14 +71,56 @@ const userSchema = new mongoose.Schema(
         default: 0,
       },
 
+      // Game win streak
       bestStreak: {
         type: Number,
         default: 0,
       },
 
+      // Game win streak
       currentStreak: {
         type: Number,
         default: 0,
+      },
+    },
+
+    // =====================================================
+    // DAILY ACTIVITY STREAK
+    // =====================================================
+
+    dailyStreak: {
+      current: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+
+      longest: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+
+      lastActiveDate: {
+        type: Date,
+        default: null,
+      },
+    },
+
+    // =====================================================
+    // DAILY CHALLENGE PROGRESS
+    // =====================================================
+
+    dailyChallenge: {
+      lastCompletedDate: {
+        type: Date,
+        default: null,
+      },
+
+      totalCompleted: {
+        type: Number,
+        default: 0,
+        min: 0,
       },
     },
   },
@@ -75,6 +129,10 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const User = mongoose.model("User", userSchema);
+const User =
+  mongoose.model(
+    "User",
+    userSchema
+  );
 
 module.exports = User;

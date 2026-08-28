@@ -2,21 +2,30 @@ const mongoose = require("mongoose");
 
 const gameResultSchema = new mongoose.Schema(
   {
-    // User who played the game
+    // =====================================================
+    // USER WHO PLAYED THE GAME
+    // =====================================================
+
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
-    // Game name
+    // =====================================================
+    // GAME NAME
+    // =====================================================
+
     game: {
       type: String,
       required: true,
       trim: true,
     },
 
-    // Game mode
+    // =====================================================
+    // GAME MODE
+    // =====================================================
+
     mode: {
       type: String,
       enum: [
@@ -27,7 +36,10 @@ const gameResultSchema = new mongoose.Schema(
       default: "normal",
     },
 
-    // Difficulty
+    // =====================================================
+    // DIFFICULTY
+    // =====================================================
+
     difficulty: {
       type: String,
       enum: [
@@ -39,14 +51,20 @@ const gameResultSchema = new mongoose.Schema(
       default: "normal",
     },
 
-    // Score achieved
+    // =====================================================
+    // SCORE
+    // =====================================================
+
     score: {
       type: Number,
       default: 0,
       min: 0,
     },
 
-    // Game outcome
+    // =====================================================
+    // GAME RESULT
+    // =====================================================
+
     result: {
       type: String,
       enum: [
@@ -57,17 +75,54 @@ const gameResultSchema = new mongoose.Schema(
       required: true,
     },
 
-    // XP awarded by backend
+    // =====================================================
+    // XP AWARDED BY BACKEND
+    // =====================================================
+
     xpEarned: {
       type: Number,
       default: 0,
       min: 0,
+    },
+
+    // =====================================================
+    // GAME-SPECIFIC METADATA
+    // =====================================================
+    //
+    // This allows different games to store additional
+    // information without changing the schema each time.
+    //
+    // Example for Grid Quest:
+    //
+    // metadata: {
+    //   starsCollected: 4,
+    //   totalStars: 4,
+    //   moves: 26
+    // }
+    //
+    // Example for another future game:
+    //
+    // metadata: {
+    //   timeTaken: 45,
+    //   correctAnswers: 8,
+    //   totalQuestions: 10
+    // }
+    //
+    // =====================================================
+
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
     },
   },
   {
     timestamps: true,
   }
 );
+
+// =====================================================
+// MODEL
+// =====================================================
 
 const GameResult = mongoose.model(
   "GameResult",

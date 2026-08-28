@@ -553,6 +553,16 @@ function GridQuest() {
 
             mode:
               "solo",
+
+            metadata: {
+              starsCollected:
+                finalStars,
+
+              totalStars,
+
+              moves:
+                finalMoves,
+            },
           }
         );
 

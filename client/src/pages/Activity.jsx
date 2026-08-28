@@ -36,6 +36,24 @@ const filters = [
     value: "Flip & Match",
     icon: "🃏",
   },
+
+  {
+    label: "Sudoku Mini",
+    value: "Sudoku Mini",
+    icon: "🔢",
+  },
+
+  {
+    label: "Pattern Puzzle",
+    value: "Pattern Puzzle",
+    icon: "🧩",
+  },
+
+  {
+    label: "Grid Quest",
+    value: "Grid Quest",
+    icon: "🧭",
+  },
 ];
 
 function Activity() {
@@ -582,6 +600,25 @@ function ActivityCard({
               {game.score || 0}
             </p>
 
+            {game.game === "Grid Quest" &&
+              game.metadata && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <ActivityTag
+                    text={`⭐ ${Number(
+                      game.metadata.starsCollected
+                    ) || 0}/${Number(
+                      game.metadata.totalStars
+                    ) || 0} Stars`}
+                  />
+
+                  <ActivityTag
+                    text={`👣 ${Number(
+                      game.metadata.moves
+                    ) || 0} Moves`}
+                  />
+                </div>
+              )}
+
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
               {formatDateTime(
                 game.createdAt
@@ -635,7 +672,7 @@ function getGameIcon(gameName) {
     "Math Blast": "🧮",
     "Toon Tac Toe": "⭕",
     "Flip & Match": "🃏",
-    "Pattern Puzzle": "🧠",
+    "Pattern Puzzle": "🧩",
     "Grid Quest": "🧭",
     "Sudoku Mini": "🔢",
   };

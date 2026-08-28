@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   font-family: "Trebuchet MS", "Arial Rounded MT Bold", sans-serif;
   color: #111827;
@@ -10,11 +16,13 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   background-color: #f8cf52;
   background-image:
     linear-gradient(135deg, rgba(255, 255, 255, 0.18) 25%, transparent 25%),
@@ -23,9 +31,35 @@ body {
   background-size: 32px 32px, 18px 18px;
 }
 
+#root {
+  min-height: 100vh;
+  min-width: 0;
+}
+
 button,
-a {
+a,
+input,
+select,
+textarea {
+  font: inherit;
   -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+button {
+  min-height: 44px;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
 }
 
 button:focus-visible,

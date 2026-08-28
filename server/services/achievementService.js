@@ -10,7 +10,9 @@ const achievementRules = [
     title: "First Win",
     description: "Win your first GameGrid game.",
     icon: "🏆",
-    check: (user) => user.stats.wins >= 1,
+
+    check: (user) =>
+      user.stats.wins >= 1,
   },
 
   {
@@ -18,7 +20,9 @@ const achievementRules = [
     title: "Getting Started",
     description: "Play 5 GameGrid games.",
     icon: "🎮",
-    check: (user) => user.stats.gamesPlayed >= 5,
+
+    check: (user) =>
+      user.stats.gamesPlayed >= 5,
   },
 
   {
@@ -26,7 +30,9 @@ const achievementRules = [
     title: "Hot Streak",
     description: "Win 5 games in a row.",
     icon: "🔥",
-    check: (user) => user.stats.bestStreak >= 5,
+
+    check: (user) =>
+      user.stats.bestStreak >= 5,
   },
 
   {
@@ -34,7 +40,9 @@ const achievementRules = [
     title: "Brain Trainer",
     description: "Play 25 GameGrid games.",
     icon: "🧠",
-    check: (user) => user.stats.gamesPlayed >= 25,
+
+    check: (user) =>
+      user.stats.gamesPlayed >= 25,
   },
 
   {
@@ -42,7 +50,9 @@ const achievementRules = [
     title: "Arcade Master",
     description: "Win 50 GameGrid games.",
     icon: "👑",
-    check: (user) => user.stats.wins >= 50,
+
+    check: (user) =>
+      user.stats.wins >= 50,
   },
 
   {
@@ -50,7 +60,9 @@ const achievementRules = [
     title: "XP Hunter",
     description: "Earn 1000 XP.",
     icon: "⭐",
-    check: (user) => user.xp >= 1000,
+
+    check: (user) =>
+      user.xp >= 1000,
   },
 
   // =====================================================
@@ -331,6 +343,146 @@ const achievementRules = [
       gameResult.result === "completed" &&
       gameResult.score >= 2000,
   },
+
+  // =====================================================
+  // GRID QUEST METADATA ACHIEVEMENTS
+  // =====================================================
+
+  {
+    achievementId: "grid_star_collector",
+    title: "Star Collector",
+    description:
+      "Collect every star in a Grid Quest maze.",
+    icon: "⭐",
+
+    checkGame: (gameResult) => {
+      if (
+        gameResult.game !== "Grid Quest" ||
+        gameResult.result !== "completed"
+      ) {
+        return false;
+      }
+
+      const metadata =
+        gameResult.metadata || {};
+
+      const starsCollected =
+        Number(metadata.starsCollected) || 0;
+
+      const totalStars =
+        Number(metadata.totalStars) || 0;
+
+      return (
+        totalStars > 0 &&
+        starsCollected === totalStars
+      );
+    },
+  },
+
+  {
+    achievementId: "grid_efficient_explorer",
+    title: "Efficient Explorer",
+    description:
+      "Complete a Grid Quest maze in 25 moves or fewer.",
+    icon: "👣",
+
+    checkGame: (gameResult) => {
+      if (
+        gameResult.game !== "Grid Quest" ||
+        gameResult.result !== "completed"
+      ) {
+        return false;
+      }
+
+      const metadata =
+        gameResult.metadata || {};
+
+      const moves =
+        Number(metadata.moves);
+
+      if (
+        !Number.isFinite(moves)
+      ) {
+        return false;
+      }
+
+      return moves <= 25;
+    },
+  },
+
+  {
+    achievementId: "grid_perfect_quest",
+    title: "Perfect Quest",
+    description:
+      "Collect every star and finish Grid Quest in 25 moves or fewer.",
+    icon: "💎",
+
+    checkGame: (gameResult) => {
+      if (
+        gameResult.game !== "Grid Quest" ||
+        gameResult.result !== "completed"
+      ) {
+        return false;
+      }
+
+      const metadata =
+        gameResult.metadata || {};
+
+      const starsCollected =
+        Number(metadata.starsCollected) || 0;
+
+      const totalStars =
+        Number(metadata.totalStars) || 0;
+
+      const moves =
+        Number(metadata.moves);
+
+      const collectedAllStars =
+        totalStars > 0 &&
+        starsCollected === totalStars;
+
+      const efficient =
+        Number.isFinite(moves) &&
+        moves <= 25;
+
+      return (
+        collectedAllStars &&
+        efficient
+      );
+    },
+  },
+
+  {
+    achievementId: "grid_hard_star_master",
+    title: "Hard Star Master",
+    description:
+      "Collect every star in a Hard Grid Quest maze.",
+    icon: "🌟",
+
+    checkGame: (gameResult) => {
+      if (
+        gameResult.game !== "Grid Quest" ||
+        gameResult.difficulty !== "hard" ||
+        gameResult.result !== "completed"
+      ) {
+        return false;
+      }
+
+      const metadata =
+        gameResult.metadata || {};
+
+      const starsCollected =
+        Number(metadata.starsCollected) || 0;
+
+      const totalStars =
+        Number(metadata.totalStars) || 0;
+
+      return (
+        totalStars > 0 &&
+        starsCollected === totalStars
+      );
+    },
+  },
 ];
 
 // =====================================================
@@ -369,6 +521,10 @@ const checkAndUnlockAchievements = async (
       unlocked = true;
     }
 
+    // =================================================
+    // NOT UNLOCKED
+    // =================================================
+
     if (!unlocked) {
       continue;
     }
@@ -380,7 +536,8 @@ const checkAndUnlockAchievements = async (
     const existingAchievement =
       await Achievement.findOne({
         user: user._id,
-        achievementId: rule.achievementId,
+        achievementId:
+          rule.achievementId,
       });
 
     if (existingAchievement) {
@@ -394,10 +551,18 @@ const checkAndUnlockAchievements = async (
     const achievement =
       await Achievement.create({
         user: user._id,
-        achievementId: rule.achievementId,
-        title: rule.title,
-        description: rule.description,
-        icon: rule.icon,
+
+        achievementId:
+          rule.achievementId,
+
+        title:
+          rule.title,
+
+        description:
+          rule.description,
+
+        icon:
+          rule.icon,
       });
 
     unlockedAchievements.push(
@@ -407,6 +572,10 @@ const checkAndUnlockAchievements = async (
 
   return unlockedAchievements;
 };
+
+// =====================================================
+// EXPORTS
+// =====================================================
 
 module.exports = {
   checkAndUnlockAchievements,

@@ -75,7 +75,7 @@ function Home() {
               WELCOME TO THE
             </p>
 
-            <h1 className="text-[70px] sm:text-[90px] md:text-[120px] lg:text-[140px] leading-[0.82] font-black tracking-tight">
+            <h1 className="text-[54px] leading-[0.86] sm:text-[90px] md:text-[120px] lg:text-[140px] font-black tracking-tight">
               TOON
               <br />
               ARCADE
