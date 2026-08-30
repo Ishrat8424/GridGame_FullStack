@@ -137,9 +137,15 @@ function Navbar() {
               Profile
             </Link>
           )}
-<Link to="/about">
-  About
-</Link>
+
+          <Link
+            to="/about"
+            className={navLinkClass(
+              "/about"
+            )}
+          >
+            About
+          </Link>
 
         </div>
 
@@ -330,13 +336,17 @@ function Navbar() {
                 </Link>
               )}
 
-              <a
-                href="/#about"
+              <Link
+                to="/about"
                 onClick={closeMenu}
-                className="rounded-xl px-4 py-3 hover:bg-white transition"
+                className={`rounded-xl px-4 py-3 transition ${
+                  isActive("/about")
+                    ? "bg-slate-950 text-white"
+                    : "hover:bg-white"
+                }`}
               >
                 ℹ️ About
-              </a>
+              </Link>
 
             </div>
 
