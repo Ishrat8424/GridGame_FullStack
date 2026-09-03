@@ -18,6 +18,9 @@ import Profile from "./pages/Profile";
 import Activity from "./pages/Activity";
 import About from "./pages/About";
 import DailyChallenge from "./pages/DailyChallenge";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // =====================================================
 // COMPONENTS
@@ -55,11 +58,25 @@ function App() {
           element={<Login />}
         />
 
+<Route
+  path="/reset-password/:token"
+  element={<ResetPassword />}
+/>
+
         <Route
           path="/register"
           element={<Register />}
         />
 
+        <Route
+  path="/verify-email/:token"
+  element={<VerifyEmail />}
+/>
+
+<Route
+  path="/forgot-password"
+  element={<ForgotPassword />}
+/>
         <Route
           path="/leaderboard"
           element={<Leaderboard />}
